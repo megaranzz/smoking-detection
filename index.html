@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Deteksi Pelanggaran Rokok Di Area Taman Kampus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e17;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #1a1f2e, #0d1117);
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(90deg, #00d4ff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .status-badge.running {
+            background: #0d4a1a;
+            color: #4ade80;
+            border: 1px solid #4ade80;
+        }
+        
+        .fps-display {
+            color: #4ade80;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .nav-link {
+            color: #60a5fa;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #2d3748;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: #1a2d4a;
+            border-color: #60a5fa;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            background: #141a26;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid #2d3748;
+            flex-wrap: wrap;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #8892b0;
+        }
+        
+        .mode-btn:hover {
+            background: #1f2a3f;
+            color: #e0e0e0;
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        
+        .camera-selector {
+            display: flex;
+            gap: 8px;
+            background: #141a26;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid #2d3748;
+        }
+        
+        .cam-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #8892b0;
+        }
+        
+        .cam-btn:hover {
+            background: #1f2a3f;
+            color: #e0e0e0;
+        }
+        
+        .cam-btn.active {
+            background: #1a2d4a;
+            color: #60a5fa;
+        }
+        
+        .cam-status {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #8892b0;
+            align-items: center;
+        }
+        
+        .cam-status .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        
+        .cam-status .dot.on {
+            background: #4ade80;
+        }
+        
+        .cam-status .dot.off {
+            background: #4a4a4a;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+        }
+        
+        .video-container {
+            background: #0d1117;
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            overflow: hidden;
+        }
+        
+        .video-container .video-header {
+            padding: 10px 18px;
+            background: #141a26;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .video-container .video-header span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #8892b0;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            min-height: 420px;
+        }
+        
+        .video-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .stat-box {
+            background: #0d1117;
+            border-radius: 10px;
+            border: 1px solid #2d3748;
+            padding: 12px 14px;
+        }
+        
+        .stat-box .stat-label {
+            font-size: 10px;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-box .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        
+        .stat-box .stat-value.green { color: #4ade80; }
+        .stat-box .stat-value.yellow { color: #fbbf24; }
+        .stat-box .stat-value.red { color: #f87171; }
+        .stat-box .stat-value.blue { color: #60a5fa; }
+        .stat-box .stat-value.purple { color: #a78bfa; }
+        
+        .stat-box .stat-detail {
+            font-size: 11px;
+            color: #8892b0;
+            margin-top: 2px;
+        }
+        
+        .logs-panel {
+            background: #0d1117;
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            overflow: hidden;
+            flex: 1;
+        }
+        
+        .logs-panel .panel-header {
+            padding: 10px 16px;
+            background: #141a26;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logs-panel .panel-header h3 {
+            font-size: 13px;
+            color: #8892b0;
+        }
+        
+        .logs-panel .panel-header a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .logs-panel .panel-header a:hover {
+            text-decoration: underline;
+        }
+        
+        .logs-container {
+            padding: 8px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        
+        .logs-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .logs-container::-webkit-scrollbar-track { background: #141a26; }
+        .logs-container::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+        
+        .log-entry {
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            border-left: 3px solid #2d3748;
+            background: #141a26;
+        }
+        
+        .log-entry .log-time {
+            color: #8892b0;
+            font-size: 10px;
+        }
+        
+        .log-entry .log-msg {
+            margin-top: 1px;
+        }
+        
+        .log-entry.status-normal { border-left-color: #4ade80; }
+        .log-entry.status-warning { border-left-color: #fbbf24; }
+        .log-entry.status-danger { border-left-color: #f87171; background: #2d1a1a; }
+        
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header { flex-direction: column; text-align: center; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .mode-selector { justify-content: center; }
+            .camera-selector { justify-content: center; }
+            .cam-status { justify-content: center; }
+            .sidebar { grid-template-columns: 1fr; }
+            .stats-panel { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚬 Deteksi Pelanggaran Rokok</h1>
+            <div class="header-status">
+                <span class="status-badge running" id="statusBadge">● Berjalan</span>
+                <span class="fps-display" id="fpsDisplay">FPS: 0</span>
+                <a href="/logs" class="nav-link">📋 Logs</a>
+            </div>
+        </header>
+        
+        <div class="controls">
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="single" id="modeSingle">📹 1 Kamera</button>
+                <button class="mode-btn" data-mode="dual" id="modeDual">📹📹 2 Kamera</button>
+            </div>
+            
+            <div class="camera-selector" id="cameraSelector">
+                <button class="cam-btn active" data-cam="internal" id="camInternal">📷 Internal</button>
+                <button class="cam-btn" data-cam="external" id="camExternal">📷 Eksternal</button>
+            </div>
+            
+            <div class="cam-status">
+                <span><span class="dot on" id="dotInternal"></span>Internal</span>
+                <span><span class="dot off" id="dotExternal"></span>External</span>
+            </div>
+        </div>
+        
+        <div class="main-grid">
+            <div class="video-container">
+                <div class="video-header">
+                    <span>📺 Live Feed</span>
+                    <span id="camNameLabel">KAMERA INTERNAL</span>
+                </div>
+                <div class="video-wrapper">
+                    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="stats-panel">
+                    <div class="stat-box">
+                        <div class="stat-label">👤 Manusia</div>
+                        <div class="stat-value blue" id="statHuman">0</div>
+                        <div class="stat-detail">I: <span id="statHumanInt">0</span> | E: <span id="statHumanExt">0</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">🚬 Rokok</div>
+                        <div class="stat-value yellow" id="statRokok">0</div>
+                        <div class="stat-detail">I: <span id="statRokokInt">0</span> | E: <span id="statRokokExt">0</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">💨 Asap</div>
+                        <div class="stat-value" style="color:#fbbf24;" id="statAsap">0</div>
+                        <div class="stat-detail">I: <span id="statAsapInt">0</span> | E: <span id="statAsapExt">0</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">🚨 Pelanggaran</div>
+                        <div class="stat-value red" id="statViolation">0</div>
+                        <div class="stat-detail">Total tersimpan</div>
+                    </div>
+                </div>
+                
+                <div class="logs-panel">
+                    <div class="panel-header">
+                        <h3>📋 Logs Terbaru</h3>
+                        <a href="/logs">Lihat Semua →</a>
+                    </div>
+                    <div class="logs-container" id="logsContainer">
+                        <div style="color:#8892b0;text-align:center;padding:20px;font-size:13px;">Menunggu aktivitas...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ================================================================
+        // MODE SELECTOR
+        // ================================================================
+        
+        function setMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(mode === 'single' ? 'modeSingle' : 'modeDual').classList.add('active');
+            
+            const selector = document.getElementById('cameraSelector');
+            if (mode === 'single') {
+                selector.style.display = 'flex';
+            } else {
+                selector.style.display = 'none';
+            }
+            
+            const selected = document.querySelector('.cam-btn.active')?.dataset.cam || 'internal';
+            fetch('/set_mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: mode, selected_camera: selected })
+            });
+        }
+        
+        document.getElementById('modeSingle').addEventListener('click', () => setMode('single'));
+        document.getElementById('modeDual').addEventListener('click', () => setMode('dual'));
+        
+        // ================================================================
+        // CAMERA SELECTOR
+        // ================================================================
+        
+        document.querySelectorAll('.cam-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const cam = this.dataset.cam;
+                const label = document.getElementById('camNameLabel');
+                label.textContent = cam === 'internal' ? 'KAMERA INTERNAL' : 'KAMERA EKSTERNAL';
+                
+                const mode = document.querySelector('.mode-btn.active')?.dataset.mode || 'single';
+                fetch('/set_mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: mode, selected_camera: cam })
+                });
+            });
+        });
+        
+        // ================================================================
+        // UPDATE STATS
+        // ================================================================
+        
+        function updateStats() {
+            fetch('/get_stats')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('statHumanInt').textContent = data.internal.human;
+                    document.getElementById('statHumanExt').textContent = data.external.human;
+                    document.getElementById('statRokokInt').textContent = data.internal.objek;
+                    document.getElementById('statRokokExt').textContent = data.external.objek;
+                    document.getElementById('statAsapInt').textContent = data.internal.smoke;
+                    document.getElementById('statAsapExt').textContent = data.external.smoke;
+                    
+                    document.getElementById('statHuman').textContent = data.internal.human + data.external.human;
+                    document.getElementById('statRokok').textContent = data.internal.objek + data.external.objek;
+                    document.getElementById('statAsap').textContent = data.internal.smoke + data.external.smoke;
+                    document.getElementById('statViolation').textContent = data.total_violations || 0;
+                });
+        }
+        
+        // ================================================================
+        // UPDATE LOGS
+        // ================================================================
+        
+        function updateLogs() {
+            fetch('/get_logs')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('logsContainer');
+                    const allLogs = [...data.internal, ...data.external];
+                    
+                    if (allLogs.length === 0) {
+                        container.innerHTML = '<div style="color:#8892b0;text-align:center;padding:20px;font-size:13px;">Menunggu aktivitas...</div>';
+                    } else {
+                        let html = '';
+                        allLogs.slice(0, 10).forEach(log => {
+                            const cls = log.status === 'danger' ? 'status-danger' : 
+                                       log.status === 'warning' ? 'status-warning' : 'status-normal';
+                            html += `
+                                <div class="log-entry ${cls}">
+                                    <div class="log-time">${log.time}</div>
+                                    <div class="log-msg">${log.message}</div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                });
+        }
+        
+        // ================================================================
+        // UPDATE CAMERA STATUS
+        // ================================================================
+        
+        function updateCameraStatus() {
+            const mode = document.querySelector('.mode-btn.active')?.dataset.mode || 'single';
+            const dotInternal = document.getElementById('dotInternal');
+            const dotExternal = document.getElementById('dotExternal');
+            
+            if (mode === 'single') {
+                const selected = document.querySelector('.cam-btn.active')?.dataset.cam || 'internal';
+                if (selected === 'internal') {
+                    dotInternal.className = 'dot on';
+                    dotExternal.className = 'dot off';
+                } else {
+                    dotInternal.className = 'dot off';
+                    dotExternal.className = 'dot on';
+                }
+            } else {
+                dotInternal.className = 'dot on';
+                dotExternal.className = 'dot on';
+            }
+        }
+        
+        // ================================================================
+        // SIMULASI FPS
+        // ================================================================
+        
+        let fps = 0;
+        setInterval(() => {
+            fps = Math.floor(20 + Math.random() * 10);
+            document.getElementById('fpsDisplay').textContent = `FPS: ${fps}`;
+        }, 1000);
+        
+        // ================================================================
+        // AUTO UPDATE
+        // ================================================================
+        
+        setInterval(updateStats, 1000);
+        setInterval(updateLogs, 500);
+        setInterval(updateCameraStatus, 2000);
+        
+        updateStats();
+        updateLogs();
+        updateCameraStatus();
+    </script>
+</body>
+</html>

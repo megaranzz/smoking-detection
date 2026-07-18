@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs - Sistem Deteksi Pelanggaran Rokok Di Area Taman Kampus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e17;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #1a1f2e, #0d1117);
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            background: linear-gradient(90deg, #00d4ff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            color: #60a5fa;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #2d3748;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .nav-link:hover {
+            background: #1a2d4a;
+            border-color: #60a5fa;
+        }
+        
+        .btn-danger {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #7f1d1d;
+            color: #fca5a5;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .btn-danger:hover {
+            background: #991b1b;
+        }
+        
+        .btn-refresh {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: #1a2d4a;
+            color: #60a5fa;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .btn-refresh:hover {
+            background: #1e3a5f;
+        }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #0d1117;
+            border-radius: 10px;
+            border: 1px solid #2d3748;
+            padding: 12px 16px;
+            text-align: center;
+        }
+        
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .stat-card .label {
+            font-size: 12px;
+            color: #8892b0;
+            margin-top: 2px;
+        }
+        
+        .stat-card .number.green { color: #4ade80; }
+        .stat-card .number.yellow { color: #fbbf24; }
+        .stat-card .number.red { color: #f87171; }
+        .stat-card .number.blue { color: #60a5fa; }
+        .stat-card .number.purple { color: #a78bfa; }
+        
+        .logs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .log-panel {
+            background: #0d1117;
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            overflow: hidden;
+        }
+        
+        .log-panel .panel-header {
+            padding: 12px 18px;
+            background: #141a26;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .log-panel .panel-header h3 {
+            font-size: 14px;
+            color: #8892b0;
+        }
+        
+        .log-panel .panel-header .count {
+            font-size: 12px;
+            color: #8892b0;
+            background: #1a1f2e;
+            padding: 2px 12px;
+            border-radius: 12px;
+        }
+        
+        .log-list {
+            padding: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .log-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .log-list::-webkit-scrollbar-track { background: #141a26; }
+        .log-list::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+        
+        .log-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background: #141a26;
+            border-left: 3px solid #2d3748;
+            font-size: 13px;
+        }
+        
+        .log-item .time {
+            color: #8892b0;
+            font-size: 11px;
+        }
+        
+        .log-item .msg {
+            margin-top: 2px;
+        }
+        
+        .log-item.status-normal { border-left-color: #4ade80; }
+        .log-item.status-warning { border-left-color: #fbbf24; }
+        .log-item.status-danger { border-left-color: #f87171; background: #2d1a1a; }
+        
+        .db-logs {
+            margin-top: 20px;
+            background: #0d1117;
+            border-radius: 12px;
+            border: 1px solid #2d3748;
+            overflow: hidden;
+        }
+        
+        .db-logs .panel-header {
+            padding: 12px 18px;
+            background: #141a26;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .db-logs .panel-header h3 {
+            font-size: 14px;
+            color: #8892b0;
+        }
+        
+        .db-list {
+            padding: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .db-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .db-list::-webkit-scrollbar-track { background: #141a26; }
+        .db-list::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+        
+        .db-item {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background: #141a26;
+            border-left: 3px solid #f87171;
+        }
+        
+        .db-item .time {
+            color: #8892b0;
+            font-size: 11px;
+        }
+        
+        .db-item .msg {
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        
+        .db-item .detail {
+            font-size: 12px;
+            color: #8892b0;
+            margin-top: 3px;
+        }
+        
+        .db-item .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        .db-item .badge.internal {
+            background: #1a2d4a;
+            color: #60a5fa;
+        }
+        
+        .db-item .badge.external {
+            background: #2d1a4a;
+            color: #a78bfa;
+        }
+        
+        .db-item .badge.foto {
+            background: #1a4a2d;
+            color: #4ade80;
+            margin-left: 6px;
+        }
+        
+        .empty-state {
+            color: #8892b0;
+            text-align: center;
+            padding: 30px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .logs-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📋 Logs Monitoring</h1>
+            <div class="header-actions">
+                <button class="btn-refresh" onclick="refreshAll()">🔄 Refresh</button>
+                <button class="btn-danger" onclick="clearAllLogs()">🗑️ Hapus Semua Logs</button>
+                <a href="/" class="nav-link">← Kembali</a>
+            </div>
+        </header>
+        
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="number blue" id="totalLogs">0</div>
+                <div class="label">Total Logs</div>
+            </div>
+            <div class="stat-card">
+                <div class="number green" id="normalCount">0</div>
+                <div class="label">Normal</div>
+            </div>
+            <div class="stat-card">
+                <div class="number yellow" id="warningCount">0</div>
+                <div class="label">Peringatan</div>
+            </div>
+            <div class="stat-card">
+                <div class="number red" id="dangerCount">0</div>
+                <div class="label">Pelanggaran</div>
+            </div>
+            <div class="stat-card">
+                <div class="number purple" id="dbCount">0</div>
+                <div class="label">Database</div>
+            </div>
+        </div>
+        
+        <div class="logs-grid">
+            <div class="log-panel">
+                <div class="panel-header">
+                    <h3>📷 Logs Kamera Internal</h3>
+                    <span class="count" id="internalCount">0</span>
+                </div>
+                <div class="log-list" id="internalLogs">
+                    <div class="empty-state">Belum ada log</div>
+                </div>
+            </div>
+            
+            <div class="log-panel">
+                <div class="panel-header">
+                    <h3>📷 Logs Kamera Eksternal</h3>
+                    <span class="count" id="externalCount">0</span>
+                </div>
+                <div class="log-list" id="externalLogs">
+                    <div class="empty-state">Belum ada log</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="db-logs">
+            <div class="panel-header">
+                <h3>📊 Riwayat Pelanggaran (Database)</h3>
+                <span style="font-size: 12px; color: #8892b0;" id="dbCountLabel">0 data</span>
+            </div>
+            <div class="db-list" id="dbLogs">
+                <div class="empty-state">Belum ada data pelanggaran</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let autoRefreshInterval;
+        
+        function refreshAll() {
+            updateLogs();
+            updateDbLogs();
+            updateStats();
+        }
+        
+        function updateStats() {
+            fetch('/get_stats')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('totalLogs').textContent = 
+                        (logsData?.internal?.length || 0) + (logsData?.external?.length || 0);
+                    document.getElementById('dbCount').textContent = data.total_violations || 0;
+                });
+        }
+        
+        let logsData = { internal: [], external: [] };
+        
+        function updateLogs() {
+            fetch('/get_logs')
+                .then(res => res.json())
+                .then(data => {
+                    logsData = data;
+                    
+                    // Internal Logs
+                    const internalContainer = document.getElementById('internalLogs');
+                    const internalCount = document.getElementById('internalCount');
+                    internalCount.textContent = data.internal.length;
+                    
+                    if (data.internal.length === 0) {
+                        internalContainer.innerHTML = '<div class="empty-state">Belum ada log</div>';
+                    } else {
+                        let html = '';
+                        data.internal.forEach(log => {
+                            const cls = log.status === 'danger' ? 'status-danger' : 
+                                       log.status === 'warning' ? 'status-warning' : 'status-normal';
+                            html += `
+                                <div class="log-item ${cls}">
+                                    <div class="time">${log.time}</div>
+                                    <div class="msg">${log.message}</div>
+                                </div>
+                            `;
+                        });
+                        internalContainer.innerHTML = html;
+                    }
+                    
+                    // External Logs
+                    const externalContainer = document.getElementById('externalLogs');
+                    const externalCount = document.getElementById('externalCount');
+                    externalCount.textContent = data.external.length;
+                    
+                    if (data.external.length === 0) {
+                        externalContainer.innerHTML = '<div class="empty-state">Belum ada log</div>';
+                    } else {
+                        let html = '';
+                        data.external.forEach(log => {
+                            const cls = log.status === 'danger' ? 'status-danger' : 
+                                       log.status === 'warning' ? 'status-warning' : 'status-normal';
+                            html += `
+                                <div class="log-item ${cls}">
+                                    <div class="time">${log.time}</div>
+                                    <div class="msg">${log.message}</div>
+                                </div>
+                            `;
+                        });
+                        externalContainer.innerHTML = html;
+                    }
+                    
+                    // Hitung statistik
+                    const allLogs = [...data.internal, ...data.external];
+                    const normal = allLogs.filter(l => l.status === 'normal').length;
+                    const warning = allLogs.filter(l => l.status === 'warning').length;
+                    const danger = allLogs.filter(l => l.status === 'danger').length;
+                    
+                    document.getElementById('normalCount').textContent = normal;
+                    document.getElementById('warningCount').textContent = warning;
+                    document.getElementById('dangerCount').textContent = danger;
+                    document.getElementById('totalLogs').textContent = allLogs.length;
+                });
+        }
+        
+        function updateDbLogs() {
+            fetch('/get_logs_db')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('dbLogs');
+                    document.getElementById('dbCountLabel').textContent = data.length + ' data';
+                    document.getElementById('dbCount').textContent = data.length;
+                    
+                    if (data.length === 0) {
+                        container.innerHTML = '<div class="empty-state">Belum ada data pelanggaran</div>';
+                    } else {
+                        let html = '';
+                        data.forEach(log => {
+                            const badgeClass = log.kamera.includes('Internal') ? 'internal' : 'external';
+                            html += `
+                                <div class="db-item">
+                                    <div class="time">${log.waktu}</div>
+                                    <div class="msg">🚨 ${log.jenis}</div>
+                                    <div class="detail">${log.detail || ''}</div>
+                                    <div>
+                                        <span class="badge ${badgeClass}">${log.kamera}</span>
+                                        ${log.foto ? `<span class="badge foto">📸 ${log.foto}</span>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                });
+        }
+        
+        function clearAllLogs() {
+            if (!confirm('Yakin ingin menghapus semua logs real-time? (Database tetap aman)')) return;
+            
+            fetch('/clear_logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ kamera: 'all' })
+            }).then(() => {
+                updateLogs();
+            });
+        }
+        
+        // Auto refresh setiap 2 detik
+        setInterval(updateLogs, 2000);
+        setInterval(updateDbLogs, 5000);
+        setInterval(updateStats, 3000);
+        
+        // Initial load
+        updateLogs();
+        updateDbLogs();
+        updateStats();
+    </script>
+</body>
+</html>

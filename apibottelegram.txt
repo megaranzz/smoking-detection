@@ -1,0 +1,13 @@
+TELEGRAM_BOTS = [
+
+    {
+        "token": "8743971848:AAGNg27W1UTrcAnk4X02JjMIpK6AYKkvXPw",
+        "chat_id": "6786276785"
+    },
+
+    {
+    "token": "8587935902:AAHOIkb9c9uP9ifjDtXVMaTjv3HophnO1fY",
+    "chat_id": "8751919066"
+    },
+
+]
